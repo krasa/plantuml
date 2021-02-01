@@ -44,7 +44,7 @@ public class FileSystem {
 
 	private final static FileSystem singleton = new FileSystem();
 
-	private final ThreadLocal<SFile> currentDir = new ThreadLocal<SFile>();
+	private final ThreadLocal<String> currentDir = new ThreadLocal<>();
 
 	private FileSystem() {
 		reset();
@@ -58,21 +58,29 @@ public class FileSystem {
 		// if (dir == null) {
 		// throw new IllegalArgumentException();
 		// }
+		String absolutePath = null;
 		if (dir != null) {
-			Log.info("Setting current dir: " + dir.getAbsolutePath());
+			absolutePath = dir.getAbsolutePath();
 		}
-		this.currentDir.set(dir);
+
+		Log.info("Setting current dir: " + absolutePath);
+
+		this.currentDir.set(absolutePath);
 	}
 
 	public SFile getCurrentDir() {
-		return this.currentDir.get();
+		String path = this.currentDir.get();
+		if (path != null) {
+			return new SFile(path);
+		}
+		return null;
 	}
 
 	public SFile getFile(String nameOrPath) throws IOException {
 		if (isAbsolute(nameOrPath)) {
 			return new SFile(nameOrPath).getCanonicalFile();
 		}
-		final SFile dir = currentDir.get();
+		final SFile dir = getCurrentDir();
 		SFile filecurrent = null;
 		if (dir != null) {
 			filecurrent = dir.getAbsoluteFile().file(nameOrPath);
